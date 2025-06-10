@@ -71,10 +71,7 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-center">Background Remover</h1>
             <div className="flex flex-col gap-6">
               <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="text-base py-2 w-auto min-w-[180px]" style={{maxWidth: '100%'}} />
-              <div>
-                <label className="block text-sm mb-2">Preview background</label>
-                <BgSelector value={bgType} onChange={setBgType} />
-              </div>
+              <BgSelector value={bgType} onChange={setBgType} />
               <ModelSelector models={models} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
               <Button onClick={handleRemoveBg} disabled={!inputFile || selectedModels.length === 0 || loading} className="w-full text-lg py-3">
                 {loading ? "Processing..." : "Remove Background"}
