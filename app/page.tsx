@@ -1,103 +1,141 @@
+'use client';
+import { useState, useRef, useEffect } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import Image from "next/image";
+import { useTheme } from "next-themes";
+import { Checkerboard } from "@/components/ui/checkerboard";
+
+const getBackendUrl = (path: string) => {
+  if (typeof window !== 'undefined') {
+    // Use relative path for production, or proxy, or set your backend URL here
+    return process.env.NEXT_PUBLIC_BACKEND_URL ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${path}` : `http://localhost:8000${path}`;
+  }
+  return path;
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModels, setSelectedModels] = useState<string[]>(["rembg"]);
+  const [inputFile, setInputFile] = useState<File | null>(null);
+  const [inputUrl, setInputUrl] = useState<string>("");
+  const [outputs, setOutputs] = useState<{model: string, url: string}[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, setTheme } = useTheme();
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Fetch models on mount
+  useEffect(() => {
+    fetch(getBackendUrl("/models"))
+      .then(r => r.json())
+      .then(data => setModels(data.models || ["rembg", "bria"]))
+      .catch(() => setModels(["rembg", "bria"]));
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setInputFile(e.target.files[0]);
+      setInputUrl(URL.createObjectURL(e.target.files[0]));
+      setOutputs([]);
+    }
+  };
+
+  const handleModelChange = (value: string[]) => {
+    setSelectedModels(value);
+  };
+
+  const handleRemoveBg = async () => {
+    if (!inputFile || selectedModels.length === 0) return;
+    setLoading(true);
+    setError(null);
+    setOutputs([]);
+    try {
+      await Promise.all(selectedModels.map(async (model) => {
+        const formData = new FormData();
+        formData.append("file", inputFile);
+        formData.append("model", model);
+        const res = await fetch(getBackendUrl("/remove-background"), {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) throw new Error(`Background removal failed for ${model}`);
+        const blob = await res.blob();
+        setOutputs(prev => [...prev, { model, url: URL.createObjectURL(blob) }]);
+      }));
+    } catch (e: any) {
+      setError(e.message || "Unknown error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground transition-colors duration-300">
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <span className="text-xs">Dark</span>
+        <Switch checked={theme === 'dark'} onCheckedChange={v => setTheme(v ? 'dark' : 'light')} />
+      </div>
+      <div className="w-full max-w-md p-6 rounded-xl shadow-lg bg-card flex flex-col gap-6">
+        <h1 className="text-2xl font-bold text-center">Background Remover</h1>
+        <div className="flex flex-col gap-4">
+          <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} />
+          <div>
+            <label className="block text-xs mb-1">Select models</label>
+            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-2">
+              {models.map(m => (
+                <label key={m} className="flex items-center gap-2 cursor-pointer text-sm">
+                  <Checkbox
+                    checked={selectedModels.includes(m)}
+                    onCheckedChange={checked => {
+                      setSelectedModels(prev =>
+                        checked ? [...prev, m] : prev.filter(x => x !== m)
+                      );
+                    }}
+                    id={`model-${m}`}
+                  />
+                  <span>{m}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+          <Button onClick={handleRemoveBg} disabled={!inputFile || selectedModels.length === 0 || loading} className="w-full">
+            {loading ? "Processing..." : "Remove Background"}
+          </Button>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        {error && <div className="text-red-500 text-sm text-center">{error}</div>}
+        <div className="flex flex-col gap-4 items-center w-full">
+          {inputUrl && (
+            <div>
+              <div className="text-xs text-muted-foreground mb-1 text-center">Original</div>
+              <Image src={inputUrl} alt="Input" width={256} height={256} className="rounded shadow max-h-64 object-contain bg-white" />
+            </div>
+          )}
+          {selectedModels.map(model => {
+            const output = outputs.find(o => o.model === model);
+            return (
+              <div key={model} className="w-full flex flex-col items-center">
+                <div className="text-xs text-muted-foreground mb-1 text-center">No background ({model})</div>
+                <div className="relative w-[256px] h-[256px] rounded shadow overflow-hidden">
+                  <Checkerboard />
+                  {output ? (
+                    <Image src={output.url} alt={`Output ${model}`} width={256} height={256} className="relative z-10 rounded max-h-64 object-contain" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center z-10 bg-background/60">
+                      <span className="text-xs text-muted-foreground animate-pulse">Processing...</span>
+                    </div>
+                  )}
+                </div>
+                {output && (
+                  <a href={output.url} download={`no-bg-${model}.png`} className="block mt-2 text-center text-primary underline text-xs">Download</a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

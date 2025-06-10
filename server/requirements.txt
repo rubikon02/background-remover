@@ -5,3 +5,6 @@ transformers
 pillow
 matplotlib
 onnxruntime
+python-multipart
+torch
+torchvision

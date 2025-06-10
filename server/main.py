@@ -8,6 +8,7 @@ import numpy as np
 import io
 import os
 import uuid
+import tempfile
 
 app = FastAPI()
 
@@ -46,7 +47,7 @@ async def remove_background(
     else:
         return JSONResponse(status_code=400, content={"error": "Invalid model"})
 
-    output_filename = f"output_{uuid.uuid4().hex}.png"
-    output_path = os.path.join("/tmp", output_filename)
-    output_image.save(output_path)
-    return FileResponse(output_path, media_type="image/png", filename=output_filename)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
+        output_image.save(tmp.name)
+        tmp_path = tmp.name
+    return FileResponse(tmp_path, media_type="image/png", filename="no-bg.png")
