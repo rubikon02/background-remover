@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { Checkerboard } from "@/components/Checkerboard";
 import { Loader2 } from "lucide-react";
+import { Checkerboard } from "./Checkerboard";
 
 export function ResultGrid({ selectedModels, outputs, loading, inputDims, resultMaxHeight }: {
   selectedModels: string[],

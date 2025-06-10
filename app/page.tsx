@@ -7,13 +7,7 @@ import { ThemeSwitch } from "@/components/ThemeSwitch";
 import { ModelSelector } from "@/components/ModelSelector";
 import { ImageFrame } from "@/components/ImageFrame";
 import { ResultGrid } from "@/components/ResultGrid";
-
-const getBackendUrl = (path: string) => {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_BACKEND_URL ? `${process.env.NEXT_PUBLIC_BACKEND_URL}${path}` : `http://localhost:8000${path}`;
-  }
-  return path;
-};
+import { fetchModels, removeBackground } from "@/lib/service";
 
 export default function Home() {
   const [models, setModels] = useState<string[]>([]);
@@ -29,10 +23,7 @@ export default function Home() {
   const [resultMaxHeight, setResultMaxHeight] = useState<number | undefined>(undefined);
 
   useEffect(() => {
-    fetch(getBackendUrl("/models"))
-      .then(r => r.json())
-      .then(data => setModels(data.models || ["rembg", "bria"]))
-      .catch(() => setModels(["rembg", "bria"]));
+    fetchModels().then(setModels);
   }, []);
 
   useEffect(() => {
@@ -59,15 +50,7 @@ export default function Home() {
     setOutputs([]);
     try {
       await Promise.all(selectedModels.map(async (model) => {
-        const formData = new FormData();
-        formData.append("file", inputFile);
-        formData.append("model", model);
-        const res = await fetch(getBackendUrl("/remove-background"), {
-          method: "POST",
-          body: formData,
-        });
-        if (!res.ok) throw new Error(`Background removal failed for ${model}`);
-        const blob = await res.blob();
+        const blob = await removeBackground(inputFile, model);
         setOutputs(prev => [...prev, { model, url: URL.createObjectURL(blob) }]);
       }));
     } catch (e: any) {
