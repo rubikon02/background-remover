@@ -8,6 +8,13 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { ImageFrame } from "@/components/ImageFrame";
 import { ResultGrid } from "@/components/ResultGrid";
 import { fetchModels, removeBackground } from "@/lib/service";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select";
 
 export default function Home() {
   const [models, setModels] = useState<string[]>([]);
@@ -21,6 +28,7 @@ export default function Home() {
   const [inputDims, setInputDims] = useState<{ width: number, height: number } | null>(null);
   const resultFrameRef = useRef<HTMLDivElement>(null);
   const [resultMaxHeight, setResultMaxHeight] = useState<number | undefined>(undefined);
+  const [bgType, setBgType] = useState<'checkerboard' | 'white' | 'black' | 'transparent'>('transparent');
 
   useEffect(() => {
     fetchModels().then(setModels);
@@ -69,6 +77,20 @@ export default function Home() {
             <h1 className="text-3xl font-bold text-center">Background Remover</h1>
             <div className="flex flex-col gap-6">
               <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="text-base py-2 w-auto min-w-[180px]" style={{maxWidth: '100%'}} />
+              <div>
+                <label className="block text-sm mb-2">Preview background</label>
+                <Select value={bgType} onValueChange={v => setBgType(v as 'checkerboard' | 'white' | 'black' | 'transparent')}>
+                  <SelectTrigger className="w-full max-w-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="transparent">Transparent</SelectItem>
+                    <SelectItem value="checkerboard">Checkerboard</SelectItem>
+                    <SelectItem value="white">White</SelectItem>
+                    <SelectItem value="black">Black</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <ModelSelector models={models} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
               <Button onClick={handleRemoveBg} disabled={!inputFile || selectedModels.length === 0 || loading} className="w-full text-lg py-3">
                 {loading ? "Processing..." : "Remove Background"}
@@ -83,7 +105,7 @@ export default function Home() {
           )}
         </div>
         {error && <div className="text-red-500 text-base text-center">{error}</div>}
-        <ResultGrid selectedModels={selectedModels} outputs={outputs} loading={loading} inputDims={inputDims} resultMaxHeight={resultMaxHeight} />
+        <ResultGrid selectedModels={selectedModels} outputs={outputs} loading={loading} inputDims={inputDims} resultMaxHeight={resultMaxHeight} bgType={bgType} />
       </div>
     </div>
   );

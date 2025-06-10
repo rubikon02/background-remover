@@ -2,12 +2,13 @@ import Image from "next/image";
 import { Loader2 } from "lucide-react";
 import { Checkerboard } from "./Checkerboard";
 
-export function ResultGrid({ selectedModels, outputs, loading, inputDims, resultMaxHeight }: {
+export function ResultGrid({ selectedModels, outputs, loading, inputDims, resultMaxHeight, bgType = 'checkerboard' }: {
   selectedModels: string[],
   outputs: { model: string, url: string }[],
   loading: boolean,
   inputDims: { width: number, height: number } | null,
-  resultMaxHeight?: number
+  resultMaxHeight?: number,
+  bgType?: 'checkerboard' | 'white' | 'black' | 'transparent',
 }) {
   return (
     <div className="w-full grid gap-8 items-start justify-center"
@@ -21,15 +22,16 @@ export function ResultGrid({ selectedModels, outputs, loading, inputDims, result
           <div key={model} className="flex flex-col items-center w-full">
             <div className="text-base font-semibold mb-2 text-center uppercase tracking-wide">{model}</div>
             <div
-              className="relative rounded shadow overflow-hidden bg-white flex items-center justify-center"
+              className="relative rounded shadow overflow-hidden flex items-center justify-center"
               style={{
                 width: '100%',
                 maxWidth: '256px',
                 aspectRatio: inputDims ? `${inputDims.width} / ${inputDims.height}` : '1/1',
                 maxHeight: resultMaxHeight ? `${resultMaxHeight}px` : undefined,
+                background: bgType === 'white' ? '#fff' : bgType === 'black' ? '#000' : undefined,
               }}
             >
-              <Checkerboard />
+              {bgType === 'checkerboard' && <Checkerboard />}
               {output ? (
                 <Image src={output.url} alt={`Output ${model}`} fill className="relative z-10 rounded object-contain" />
               ) : (
