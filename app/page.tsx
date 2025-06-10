@@ -8,13 +8,7 @@ import { ModelSelector } from "@/components/ModelSelector";
 import { ImageFrame } from "@/components/ImageFrame";
 import { ResultGrid } from "@/components/ResultGrid";
 import { fetchModels, removeBackground } from "@/lib/service";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem
-} from "@/components/ui/select";
+import { BgSelector } from "@/components/BgSelector";
 
 export default function Home() {
   const [models, setModels] = useState<string[]>([]);
@@ -79,17 +73,7 @@ export default function Home() {
               <Input type="file" accept="image/*" onChange={handleFileChange} ref={fileInputRef} className="text-base py-2 w-auto min-w-[180px]" style={{maxWidth: '100%'}} />
               <div>
                 <label className="block text-sm mb-2">Preview background</label>
-                <Select value={bgType} onValueChange={v => setBgType(v as 'checkerboard' | 'white' | 'black' | 'transparent')}>
-                  <SelectTrigger className="w-full max-w-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="transparent">Transparent</SelectItem>
-                    <SelectItem value="checkerboard">Checkerboard</SelectItem>
-                    <SelectItem value="white">White</SelectItem>
-                    <SelectItem value="black">Black</SelectItem>
-                  </SelectContent>
-                </Select>
+                <BgSelector value={bgType} onChange={setBgType} />
               </div>
               <ModelSelector models={models} selectedModels={selectedModels} setSelectedModels={setSelectedModels} />
               <Button onClick={handleRemoveBg} disabled={!inputFile || selectedModels.length === 0 || loading} className="w-full text-lg py-3">

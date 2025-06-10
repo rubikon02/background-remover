@@ -10,17 +10,17 @@ The frontend is based on Next.js + React + shadcn/ui, and the backend is built w
 - Node.js 18+
 - pnpm
 
-## Installation
+## Installing dependencies and starting up
 
 ```bash
 pnpm bootstrap
-pnpm start
+pnpm backend:start
+pnpm frontend:start # or pnpm frontend:dev for developement
 ```
 
 ## pnpm Scripts
 
 - `pnpm bootstrap` — installs pnpm dependencies and Python dependencies in a virtualenv in the `server` folder
-- `pnpm start` — starts both backend and frontend in production mode (both processes in the background)
 
 ### Frontend
 - `pnpm frontend:dev` — starts the Next.js frontend in development mode
