@@ -71,7 +71,7 @@ def auto_detect_rect(image):
     largest_contour = max(contours, key=cv2.contourArea)
     x, y, w, h = cv2.boundingRect(largest_contour)
 
-    Powiększ trochę prostokąt
+    # Powiększ trochę prostokąt
     pad = 1
     x = max(1, x - pad)
     y = max(1, y - pad)
@@ -80,7 +80,8 @@ def auto_detect_rect(image):
 
     return (x, y, w, h)
 
-def remove_background(imgo):
+def remove_background(imgo_pil):
+    imgo = np.array(imgo_pil)
     # Resize dla lepszej wydajności
     height, width = imgo.shape[:2]
     imgo = cv2.resize(imgo, (int(width * 0.7), int(height * 0.7)), interpolation=cv2.INTER_AREA)
@@ -101,5 +102,9 @@ def remove_background(imgo):
     background = imgo - img1
     background[np.where((background > [0, 0, 0]).all(axis=2))] = [255, 255, 255]
     final = background + img1
-    
-    return final
+
+    alpha_channel = mask2
+    final = np.dstack((final, alpha_channel))
+    output = Image.fromarray(final, "RGBA")
+
+    return output
