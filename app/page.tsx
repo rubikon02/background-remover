@@ -55,8 +55,12 @@ export default function Home() {
         const blob = await removeBackground(inputFile, model);
         setOutputs(prev => [...prev, { model, url: URL.createObjectURL(blob) }]);
       }));
-    } catch (e: any) {
-      setError(e.message || "Unknown error");
+    } catch (e) {
+      if (e instanceof Error) {
+        setError(e.message);
+      } else {
+        setError("Unknown error");
+      }
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,8 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { useMemo } from "react";
 
 export function ModelSelector({ models, selectedModels, setSelectedModels }: { models: string[], selectedModels: string[], setSelectedModels: (v: string[]) => void }) {
   const allSelected = models.length > 0 && selectedModels.length === models.length;
   const noneSelected = selectedModels.length === 0;
-  const someSelected = !allSelected && !noneSelected;
 
   const handleSelectAll = () => setSelectedModels(models);
   const handleDeselectAll = () => setSelectedModels([]);

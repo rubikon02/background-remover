@@ -2,7 +2,9 @@
 
 A web application for removing backgrounds from images. 
 
-The frontend is based on Next.js + React + shadcn/ui, and the backend is built with FastAPI (Python) supporting the rembg and bria models.
+The frontend is based on Next.js + React + shadcn/ui, and the backend is built with FastAPI (Python) supporting the rembg, bria, u2net and simple custom model.
+
+![Screenshot](./screenshots/screenshot01.png)
 
 ## Prerequisites
 
@@ -15,10 +17,10 @@ The frontend is based on Next.js + React + shadcn/ui, and the backend is built w
 ```bash
 pnpm bootstrap
 pnpm backend:start
-pnpm frontend:start # or pnpm frontend:dev for developement
+pnpm frontend:dev
 ```
 
-## pnpm Scripts
+## pnpm scripts
 
 - `pnpm bootstrap` — installs pnpm dependencies and Python dependencies in a virtualenv in the `server` folder
 
