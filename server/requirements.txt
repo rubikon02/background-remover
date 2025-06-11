@@ -8,3 +8,4 @@ onnxruntime
 python-multipart
 torch
 torchvision
+opencv-python

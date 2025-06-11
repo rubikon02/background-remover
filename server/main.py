@@ -4,11 +4,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from PIL import Image
 from rembg import remove
 from transformers import pipeline
+from rembg.session_factory import new_session
 import numpy as np
 import cv2
 import io
-import os
-import uuid
 import tempfile
 
 app = FastAPI()
@@ -21,7 +20,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-AVAILABLE_MODELS = ["rembg", "bria", "custom"]
+AVAILABLE_MODELS = ["rembg", "bria", "custom", "u2net"]
 
 @app.get("/models")
 def get_models():
@@ -47,8 +46,11 @@ async def remove_background(
         output_image.paste(input_image, mask=mask)
     elif model == "custom":
         output_image = remove_background(input_image)
+    elif model == "u2net":
+        session = new_session("u2net")
+        output_image = remove(input_image, session=session)
     else:
-        return JSONResponse(status_code=400, content={"error": "Invalid model"})
+        return JSONResponse({"error": "Unknown model"}, status_code=400)
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp:
         output_image.save(tmp.name)
