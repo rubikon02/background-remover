@@ -82,11 +82,14 @@ def auto_detect_rect(image):
 
 def remove_background(imgo_pil):
     imgo = np.array(imgo_pil)
+    
     # Resize dla lepszej wydajności
     height, width = imgo.shape[:2]
     imgo = cv2.resize(imgo, (int(width * 0.7), int(height * 0.7)), interpolation=cv2.INTER_AREA)
+    
     # Tworzenie maski
     mask = np.zeros(imgo.shape[:2], np.uint8)
+    
     # Automatyczne wykrycie prostokąta
     rect = auto_detect_rect(imgo)
     bgdModel = np.zeros((1, 65), np.float64)
@@ -103,8 +106,5 @@ def remove_background(imgo_pil):
     background[np.where((background > [0, 0, 0]).all(axis=2))] = [255, 255, 255]
     final = background + img1
 
-    alpha_channel = mask2
-    final = np.dstack((final, alpha_channel))
-    output = Image.fromarray(final, "RGBA")
-
+    output = Image.fromarray(final)
     return output
